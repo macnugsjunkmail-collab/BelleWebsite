@@ -1,0 +1,315 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: black;
+}
+
+.video-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.video::-webkit-media-controls {
+  display: none !important; /* Hides Chrome's native controls, including Cast */
+}
+
+.button-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+.next-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  height: 180px;
+  font-size: 18px;
+  background-color: transparent;
+  color: transparent;
+  opacity: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.next-button:hover {
+  background-color: transparent;
+}
+
+.pause-ring {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  border: 2px solid white;
+  border-radius: 50%;
+  opacity: 0.3;
+  cursor: pointer;
+  z-index: 15;
+  transition: opacity 0.3s, border 0.3s, background 0.3s;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.pause-ring:hover {
+  opacity: 0.6;
+}
+
+.showcase-button {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: #333;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 20px;
+  border: 1px solid #333;
+  border-radius: 25px;
+  text-decoration: none;
+  cursor: pointer;
+  z-index: 15;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.showcase-button:hover {
+  background-color: #ec8d11;
+  color: white;
+  border-color: #ec8d11;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.character-popup {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 1000 !important;
+}
+
+.popup-content {
+  background-color: #e0e0e0;
+  padding: 20px;
+  border-radius: 4px;
+  text-align: center;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.popup-content .button-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.popup-content h2 {
+  margin-top: 0;
+  color: #333;
+  font-size: 2rem;
+  margin-bottom: 0;
+}
+
+.popup-content p {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.popup-button {
+  padding: 8px 15px; /* Adjusted padding */
+  margin: 0;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  box-sizing: border-box;
+  /* Removed flex: 1 to let buttons size to content */
+  max-width: 190px; /* Limit maximum width */
+}
+
+.popup-button.watch- {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.popup-button.watch-:hover {
+  background-color: #2fab35;
+}
+
+.popup-button.bring- {
+  background-color: #e5952c;
+  color: white;
+}
+
+.popup-button.bring-:hover {
+  background-color: #d57e0d;
+}
+
+/* Fallback for static popups (Narrator, Speed) */
+.popup-button:nth-child(1) {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.popup-button:nth-child(1):hover {
+  background-color: #2fab35;
+}
+
+.popup-button:nth-child(2) {
+  background-color: #e5952c;
+  color: white;
+}
+
+.popup-button:nth-child(2):hover {
+  background-color: #d57e0d;
+}
+
+.skip-link {
+  display: block;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.skip-link:hover {
+  color: #2196F3;
+  text-decoration: underline;
+}
+
+#bookShowcase {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+  z-index: 30;
+  overflow-y: auto;
+}
+
+#bookShowcase h1 {
+  font-size: 36px;
+  color: #eca343;
+  margin: 10px 0;
+}
+
+#bookShowcase h2 {
+  font-size: 28px;
+  color: white;
+  margin: 10px 0 20px;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+.book-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.book-item img {
+  width: 250px;
+  height: auto;
+  border-radius: 5px;
+  transition: transform 0.3s ease;
+}
+
+.book-item img:hover {
+  transform: scale(1.05);
+}
+
+.book-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 4px 20px;
+  font-size: 16px;
+  font-family: 'Comic Neue', cursive;
+  font-weight: 700;
+  color: white;
+  background-color: #e5952c;
+  border: none;
+  border-radius: 25px;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  height: 30px;
+}
+
+.book-button:hover {
+  background-color: #d57e0d;
+}
+
+.book-title {
+  display: none;
+}

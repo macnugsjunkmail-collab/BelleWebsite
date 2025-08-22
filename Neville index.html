@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Belle Website</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="video-container">
+    <video id="video1" class="video" src="Intro Button.mp4" muted preload="auto"></video>
+    <video id="video2" class="video" src="Neville Intro.mp4" style="display: none;" preload="auto"></video>
+    <video id="video3" class="video" src="Neville at the Belle Video - Narrator.mp4" style="display: none;" preload="auto"></video>
+    <video id="video4" class="video" src="Neville at the Belle Video - No Narrator.mp4" style="display: none;" preload="auto"></video>
+  </div>
+  <div class="button-container">
+    <button id="nextButton" class="next-button" style="display: none;">Next Animation</button>
+    <button id="pauseRing" class="pause-ring" style="display: none;"></button>
+    <button id="showcaseButton" class="showcase-button" style="display: none;">Bring Chasing Home</button>
+  </div>
+  <div id="popup" class="popup" style="display: none;">
+    <div class="popup-content">
+      <h2>Choose an Option</h2>
+      <p>Would you like a narrator for this story?</p>
+      <div class="button-row">
+        <button id="narratorButton" class="popup-button">Narrator</button>
+        <button id="noNarratorButton" class="popup-button">No Narrator</button>
+      </div>
+      <a href="#" id="skipToShowcase" class="skip-link">Bring Chasing Home</a>
+    </div>
+  </div>
+  <div id="speedPopup" class="popup" style="display: none;">
+    <div class="popup-content">
+      <h2>Select Speed</h2>
+      <p>Choose the playback speed for this story.</p>
+      <div class="button-row">
+        <button id="normalSpeedButton" class="popup-button">Normal Speed</button>
+        <button id="slowSpeedButton" class="popup-button">Slow Speed</button>
+      </div>
+    </div>
+  </div>
+  <div id="bookShowcase" style="display: none;">
+    <div class="scroll-content">
+      <h1>Looking to learn more about your mind, mental health and personality?</h1>
+      <h2>Check out more of Chasing's stories</h2>
+      <div class="book-grid">
+        <div class="book-item">
+          <a href="#">
+            <img src="image1.png" alt="Ned at the Belle">
+          </a>
+          <a href="https://a.co/d/hBaDbZA" target="_blank" class="book-button">Bring Ned Home</a>
+        </div>
+        <div class="book-item">
+          <a href="#">
+            <img src="image2.png" alt="Kym at the Belle">
+          </a>
+          <a href="https://a.co/d/c4QHKXn" target="_blank" class="book-button">Bring Kym Home</a>
+        </div>
+        <div class="book-item">
+          <a href="#">
+            <img src="image3.png" alt="Neville at the Belle">
+          </a>
+          <a href="https://a.co/d/5E6WCs0" target="_blank" class="book-button">Bring Neville Home</a>
+        </div>
+        <div class="book-item">
+          <a href="#">
+            <img src="image4.png" alt="Anna at the Belle">
+          </a>
+          <a href="https://a.co/d/2BpyVux" target="_blank" class="book-button">Bring Anna Home</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
