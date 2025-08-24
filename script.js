@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let youtubePlayers = {};
   let currentVideoIndex = 0;
   let isVideoPaused = false;
+  let isFourKEnabled = false; // Track 4K toggle state
 
   // Manually load YouTube IFrame API if not already loaded
   function loadYouTubeAPI() {
@@ -58,17 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('YouTube player ready');
     const player = event.target;
     const playerId = player.getIframe().id;
-    console.log(`YouTube player ${playerId} ready`);
+    console.log(`YouTube player ${playerId} ready, currentIndex: ${currentVideoIndex}`);
     const quality = player.getAvailableQualityLevels();
     const currentQuality = player.getPlaybackQuality();
     console.log(`Available qualities for ${playerId}:`, quality);
     console.log(`Current playback quality for ${playerId}:`, currentQuality);
     updateQualityDisplay(playerId, currentQuality);
-    if (quality.includes('highres')) {
+    if (quality.includes('highres') && isFourKEnabled) {
       player.setPlaybackQuality('highres');
-      console.log(`Set ${playerId} to highres (4K) if available`);
+      console.log(`Set ${playerId} to highres (4K) on ready`);
     } else {
-      console.log(`4K not available for ${playerId}, using highest available:`, currentQuality);
+      console.log(`4K not available or not enabled for ${playerId}, using ${currentQuality}`);
     }
     if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
       player.playVideo();
@@ -83,14 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`YouTube player state change for ${playerId}:`, event.data, `Quality: ${currentQuality}`);
     if (event.data == YT.PlayerState.ENDED) {
       player.stopVideo();
-      let index;
-      try {
-        index = parseInt(playerId.replace('video', '')) - 1;
-        console.log(`Parsed index for ${playerId}: ${index}`);
-      } catch (e) {
-        console.error(`Failed to parse index from ${playerId}:`, e);
-        index = currentVideoIndex;
-      }
+      let index = parseInt(playerId.replace('video', '')) - 1;
+      console.log(`Parsed index for ${playerId}: ${index}`);
       handleVideoEnd(index);
       document.getElementById(playerId).style.display = 'none';
     } else if (event.data == YT.PlayerState.PLAYING) {
@@ -104,15 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentQuality = player.getPlaybackQuality();
       const quality = player.getAvailableQualityLevels();
       console.log(`Quality check for ${playerId}: Current: ${currentQuality}, Available:`, quality);
-      if (currentQuality !== 'highres' && quality.includes('highres')) {
+      if (isFourKEnabled && quality.includes('highres') && currentQuality !== 'highres') {
         player.setPlaybackQuality('highres');
         console.log(`Attempting to switch ${playerId} to highres (4K)`);
         updateQualityDisplay(playerId, player.getPlaybackQuality());
-      } else {
-        console.log(`No switch needed for ${playerId}: Current quality is ${currentQuality}`);
+      } else if (!isFourKEnabled || !quality.includes('highres')) {
+        console.log(`4K not enabled or not available for ${playerId}, using ${currentQuality}`);
       }
     };
-    // Check every 2 seconds while playing
     const intervalId = setInterval(() => {
       if (player.getPlayerState() === YT.PlayerState.PLAYING) {
         checkQuality();
@@ -120,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(intervalId);
       }
     }, 2000);
+    setTimeout(() => clearInterval(intervalId), 30000); // Stop after 30 seconds
   }
 
   function updateQualityDisplay(playerId, quality) {
@@ -168,7 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (video) video.style.display = 'none';
     });
 
-    currentVideoIndex = index;
+    currentVideoIndex = index; // Ensure index is updated here
+    console.log(`Setting currentVideoIndex to ${index}`);
     if (index === 0 || index === 1) {
       const nextVideo = videos[index];
       nextVideo.style.display = 'block';
@@ -187,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pauseRing.style.background = 'transparent';
         isVideoPaused = false;
         if (showcaseButton) showcaseButton.style.display = 'none';
+        updateFourKToggleVisibility();
       } else {
         if (pauseRing) pauseRing.style.display = 'none';
         if (showcaseButton) showcaseButton.style.display = 'none';
@@ -199,6 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         player.setPlaybackRate(speed);
         console.log(`Attempting to play YouTube video ${index + 1} at speed ${speed}`);
         player.playVideo();
+        if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
+          player.setPlaybackQuality('highres');
+          console.log(`Set ${player.getIframe().id} to highres (4K) on play`);
+        }
       } else {
         console.error(`YouTube player for index ${index} not initialized`);
       }
@@ -209,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pauseRing.style.background = 'transparent';
         isVideoPaused = false;
         if (showcaseButton) showcaseButton.style.display = 'none';
+        updateFourKToggleVisibility();
       } else {
         if (pauseRing) pauseRing.style.display = 'none';
         if (showcaseButton) showcaseButton.style.display = 'none';
@@ -302,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (pauseRing) {
     pauseRing.addEventListener('click', () => {
-      console.log('Toggling pause ring');
+      console.log('Toggling pause ring, currentIndex:', currentVideoIndex);
       const currentVideo = videos[currentVideoIndex];
       const fullscreenButton = document.getElementById('fullscreenButton');
       if (currentVideoIndex < 2) {
@@ -315,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pauseRing.style.background = 'transparent';
             if (showcaseButton) showcaseButton.style.display = 'none';
             if (fullscreenButton) fullscreenButton.style.display = 'none';
+            updateFourKToggleVisibility();
             console.log(`Video ${currentVideoIndex + 1} unpaused`);
           } else {
             currentVideo.pause();
@@ -340,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (currentVideoIndex === 1) {
               if (showcaseButton) showcaseButton.style.display = 'none';
             }
+            updateFourKToggleVisibility();
             console.log(`Video ${currentVideoIndex + 1} paused`);
           }
         }
@@ -354,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pauseRing.style.background = 'transparent';
             if (showcaseButton) showcaseButton.style.display = 'none';
             if (fullscreenButton) fullscreenButton.style.display = 'none';
+            updateFourKToggleVisibility();
             console.log(`YouTube video ${currentVideoIndex + 1} unpaused`);
           } else {
             player.pauseVideo();
@@ -364,6 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentVideoIndex === 2 || currentVideoIndex === 3) {
               if (showcaseButton) showcaseButton.style.display = 'block';
             }
+            updateFourKToggleVisibility();
             console.log(`YouTube video ${currentVideoIndex + 1} paused`);
           }
         } else {
@@ -385,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentVideo.play().catch(error => console.error('Unpause failed:', error));
             isVideoPaused = false;
             if (pauseRing) pauseRing.style.display = 'none';
+            updateFourKToggleVisibility();
             console.log('Video1 unpaused via Fullscreen button');
           }
         }).catch(err => {
@@ -397,11 +404,81 @@ document.addEventListener('DOMContentLoaded', () => {
           currentVideo.play().catch(error => console.error('Unpause failed:', error));
           isVideoPaused = false;
           if (pauseRing) pauseRing.style.display = 'none';
+          updateFourKToggleVisibility();
           console.log('Video1 unpaused via Fullscreen button');
         }
       }
+    } else if (e.target && e.target.id === 'fourKToggle') {
+      const player = youtubePlayers[currentVideoIndex];
+      if (player && !player.isToggleInProgress) {
+        player.isToggleInProgress = true; // Prevent multiple toggles
+        isFourKEnabled = !isFourKEnabled;
+        const newQuality = isFourKEnabled ? 'highres' : 'auto';
+        console.log(`Attempting to set ${player.getIframe().id} to ${newQuality}`);
+        player.setPlaybackQuality(newQuality);
+        let attempts = 0;
+        const maxAttempts = 3;
+        const checkQuality = () => {
+          if (attempts >= maxAttempts) {
+            const currentQuality = player.getPlaybackQuality();
+            console.log(`Final quality after toggle: ${currentQuality}`);
+            e.target.classList.toggle('active', isFourKEnabled);
+            updateQualityDisplay(player.getIframe().id, currentQuality);
+            player.isToggleInProgress = false;
+            return;
+          }
+          const currentQuality = player.getPlaybackQuality();
+          console.log(`Quality check attempt ${attempts + 1}: ${currentQuality}`);
+          if (currentQuality !== newQuality) {
+            player.setPlaybackQuality(newQuality);
+            attempts++;
+            setTimeout(checkQuality, 1000); // Retry every 1 second
+          } else {
+            console.log(`Final quality after toggle: ${currentQuality}`);
+            e.target.classList.toggle('active', isFourKEnabled);
+            updateQualityDisplay(player.getIframe().id, currentQuality);
+            player.isToggleInProgress = false;
+          }
+        };
+        setTimeout(checkQuality, 1000); // Initial check after 1 second
+      }
     }
   });
+
+  function updateFourKToggleVisibility() {
+    const toggleButton = document.getElementById('fourKToggle');
+    if (!toggleButton) {
+      const button = document.createElement('button');
+      button.id = 'fourKToggle';
+      button.textContent = 'Toggle 4K';
+      button.style.position = 'absolute';
+      button.style.bottom = '20px';
+      button.style.left = '20px';
+      button.style.fontSize = '16px';
+      button.style.fontFamily = "'Playfair Display', serif";
+      button.style.fontWeight = '700';
+      button.style.color = '#333';
+      button.style.background = 'rgba(255, 255, 255, 0.9)';
+      button.style.padding = '8px 20px';
+      button.style.border = '1px solid #333';
+      button.style.borderRadius = '25px';
+      button.style.cursor = 'pointer';
+      button.style.zIndex = '15';
+      button.style.transition = 'background-color 0.3s, color 0.3s';
+      document.body.appendChild(button);
+    }
+    const shouldShow = isVideoPaused && (currentVideoIndex === 2 || currentVideoIndex === 3);
+    console.log(`Updating 4K toggle visibility: isVideoPaused=${isVideoPaused}, currentIndex=${currentVideoIndex}, shouldShow=${shouldShow}`);
+    document.getElementById('fourKToggle').style.display = shouldShow ? 'block' : 'none';
+    if (shouldShow) {
+      const player = youtubePlayers[currentVideoIndex];
+      if (player) {
+        const quality = player.getAvailableQualityLevels();
+        console.log(`Available qualities for toggle check:`, quality);
+        document.getElementById('fourKToggle').classList.toggle('active', isFourKEnabled);
+      }
+    }
+  }
 
   if (showcaseButton) {
     showcaseButton.addEventListener('click', () => {
