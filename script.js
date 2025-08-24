@@ -19,40 +19,45 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize YouTube IFrame API
   window.onYouTubeIframeAPIReady = function() {
     console.log('YouTube IFrame API ready');
-    youtubePlayers[2] = new YT.Player('video3', {
-      height: '100%',
-      width: '100%',
-      videoId: 'jDu0UOIfBwM',
-      playerVars: {
-        'controls': 0,
-        'rel': 0,
-        'showinfo': 0,
-        'modestbranding': 1,
-        'enablejsapi': 1,
-        'quality': 'highres'
-      },
-      events: {
-        'onReady': onPlayerReady,
-        'onStateChange': onPlayerStateChange
-      }
-    });
-    youtubePlayers[3] = new YT.Player('video4', {
-      height: '100%',
-      width: '100%',
-      videoId: 'a4QlEBFXsxo',
-      playerVars: {
-        'controls': 0,
-        'rel': 0,
-        'showinfo': 0,
-        'modestbranding': 1,
-        'enablejsapi': 1,
-        'quality': 'highres'
-      },
-      events: {
-        'onReady': onPlayerReady,
-        'onStateChange': onPlayerStateChange
-      }
-    });
+    try {
+      youtubePlayers[2] = new YT.Player('video3', {
+        height: '100%',
+        width: '100%',
+        videoId: 'jDu0UOIfBwM',
+        playerVars: {
+          'controls': 0,
+          'rel': 0,
+          'showinfo': 0,
+          'modestbranding': 1,
+          'enablejsapi': 1,
+          'quality': 'highres'
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+      youtubePlayers[3] = new YT.Player('video4', {
+        height: '100%',
+        width: '100%',
+        videoId: 'a4QlEBFXsxo',
+        playerVars: {
+          'controls': 0,
+          'rel': 0,
+          'showinfo': 0,
+          'modestbranding': 1,
+          'enablejsapi': 1,
+          'quality': 'highres'
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+      console.log('YouTube players initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize YouTube players:', error);
+    }
   };
 
   function onPlayerReady(event) {
@@ -201,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log(`Set ${player.getIframe().id} to highres (4K) on play`);
         }
       } else {
-        console.error(`YouTube player for index ${index} not initialized`);
+        console.error(`YouTube player for index ${index} not initialized or unavailable`);
       }
       if (pauseRing && (index === 2 || index === 3)) {
         pauseRing.style.display = 'block';
