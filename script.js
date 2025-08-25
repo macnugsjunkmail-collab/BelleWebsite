@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize YouTube IFrame API
   window.onYouTubeIframeAPIReady = function() {
     console.log('YouTube IFrame API ready');
+    const origin = window.location.origin; // Dynamically set origin
     try {
       youtubePlayers[2] = new YT.Player('video3', {
         height: '100%',
@@ -30,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
           'showinfo': 0,
           'modestbranding': 1,
           'enablejsapi': 1,
-          'quality': 'highres'
+          'quality': 'highres',
+          'origin': origin // Dynamic origin
         },
         events: {
           'onReady': onPlayerReady,
@@ -47,14 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
           'showinfo': 0,
           'modestbranding': 1,
           'enablejsapi': 1,
-          'quality': 'highres'
+          'quality': 'highres',
+          'origin': origin // Dynamic origin
         },
         events: {
           'onReady': onPlayerReady,
           'onStateChange': onPlayerStateChange
         }
       });
-      console.log('YouTube players initialized successfully');
+      console.log('YouTube players initialized successfully with origin:', origin);
     } catch (error) {
       console.error('Failed to initialize YouTube players:', error);
     }
@@ -95,32 +98,37 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById(playerId).style.display = 'none';
     } else if (event.data == YT.PlayerState.PLAYING) {
       updateQualityDisplay(playerId, currentQuality);
+      if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
+        player.setPlaybackQuality('highres');
+        console.log(`Reapplied highres for ${playerId} on play`);
+        startQualityCheck(player);
+      }
     }
   }
 
   function startQualityCheck(player) {
     const playerId = player.getIframe().id;
     let attempts = 0;
-    const maxAttempts = 5; // Increased attempts
+    const maxAttempts = 5;
     const checkQuality = () => {
       const currentQuality = player.getPlaybackQuality();
       const quality = player.getAvailableQualityLevels();
-      console.log(`Quality check for ${playerId}: Current: ${currentQuality}, Available:`, quality);
+      console.log(`Quality check for ${playerId}: Attempt ${attempts + 1}, Current: ${currentQuality}, Available:`, quality);
       if (isFourKEnabled && quality.includes('highres') && currentQuality !== 'highres') {
         player.setPlaybackQuality('highres');
         console.log(`Attempting to switch ${playerId} to highres (4K)`);
         updateQualityDisplay(playerId, player.getPlaybackQuality());
-      } else if (!isFourKEnabled || !quality.includes('highres')) {
-        console.log(`4K not enabled or not available for ${playerId}, using ${currentQuality}`);
+      } else {
+        console.log(`4K ${isFourKEnabled ? 'enabled but' : 'not enabled or'} not applied for ${playerId}, using ${currentQuality}`);
       }
       if (attempts < maxAttempts && (player.getPlayerState() === YT.PlayerState.PAUSED || player.getPlayerState() === YT.PlayerState.PLAYING)) {
         attempts++;
-        setTimeout(checkQuality, 1000); // Retry every 1 second
+        setTimeout(checkQuality, 1000);
       } else {
         console.log(`Quality check completed for ${playerId} after ${attempts} attempts, final quality: ${currentQuality}`);
       }
     };
-    checkQuality(); // Start immediately
+    checkQuality();
   }
 
   function updateQualityDisplay(playerId, quality) {
@@ -205,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
           player.setPlaybackQuality('highres');
           console.log(`Set ${player.getIframe().id} to highres (4K) on play`);
-          startQualityCheck(player); // Restart quality check on play
+          startQualityCheck(player);
         }
       } else {
         console.error(`YouTube player for index ${index} not initialized or unavailable`);
@@ -367,6 +375,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fullscreenButton) fullscreenButton.style.display = 'none';
             updateFourKToggleVisibility();
             console.log(`YouTube video ${currentVideoIndex + 1} unpaused`);
+            if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
+              player.setPlaybackQuality('highres');
+              console.log(`Reapplied highres for ${player.getIframe().id} on unpause`);
+              startQualityCheck(player);
+            }
           } else {
             player.pauseVideo();
             isVideoPaused = true;
@@ -418,13 +431,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.target && e.target.id === 'fourKToggle') {
       const player = youtubePlayers[currentVideoIndex];
       if (player && !player.isToggleInProgress) {
-        player.isToggleInProgress = true; // Prevent multiple toggles
+        player.isToggleInProgress = true;
         isFourKEnabled = !isFourKEnabled;
         const newQuality = isFourKEnabled ? 'highres' : 'auto';
-        console.log(`Attempting to set ${player.getIframe().id} to ${newQuality}`);
+        console.log(`Toggling ${player.getIframe().id} to ${newQuality}, isFourKEnabled: ${isFourKEnabled}`);
         player.setPlaybackQuality(newQuality);
-        startQualityCheck(player); // Trigger quality check
+        startQualityCheck(player);
         e.target.classList.toggle('active', isFourKEnabled);
+        player.isToggleInProgress = false;
       }
     }
   });
