@@ -5,13 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let isVideoPaused = false;
   let isFourKEnabled = false; // Track 4K toggle state
 
-  // Manually load YouTube IFrame API if not already loaded
+  // Manually load YouTube IFrame API with retry
   function loadYouTubeAPI() {
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      tag.onerror = () => console.error('Failed to load YouTube IFrame API');
     }
   }
   loadYouTubeAPI();
@@ -42,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
       youtubePlayers[3] = new YT.Player('video4', {
         height: '100%',
         width: '100%',
-        videoId: 'dQw4w9WgXcQ', // Test with known 4K video
+        videoId: 'dQw4w9WgXcQ', // Known 4K video
         playerVars: {
           'controls': 0,
           'rel': 0,
@@ -68,21 +69,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const player = event.target;
     const playerId = player.getIframe().id;
     console.log(`YouTube player ${playerId} ready, currentIndex: ${currentVideoIndex}`);
-    const quality = player.getAvailableQualityLevels();
-    const currentQuality = player.getPlaybackQuality();
-    console.log(`Available qualities for ${playerId}:`, quality);
-    console.log(`Current playback quality for ${playerId}:`, currentQuality);
-    updateQualityDisplay(playerId, currentQuality);
-    if (quality.includes('highres') && isFourKEnabled) {
-      player.setPlaybackQuality('highres');
-      console.log(`Set ${playerId} to highres (4K) on ready`);
-    } else {
-      console.log(`4K not available or not enabled for ${playerId}, using ${currentQuality}`);
-    }
-    if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
-      player.playVideo();
-    }
-    startQualityCheck(player);
+    // Wait for metadata to load
+    setTimeout(() => {
+      const quality = player.getAvailableQualityLevels();
+      const currentQuality = player.getPlaybackQuality();
+      console.log(`Available qualities for ${playerId} after delay:`, quality);
+      console.log(`Current playback quality for ${playerId} after delay:`, currentQuality);
+      updateQualityDisplay(playerId, currentQuality);
+      if (quality.includes('highres') && isFourKEnabled) {
+        player.setPlaybackQuality('highres');
+        console.log(`Set ${playerId} to highres (4K) after delay`);
+      } else {
+        console.log(`4K not available or not enabled for ${playerId}, using ${currentQuality}`);
+      }
+      if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
+        player.playVideo();
+      }
+      startQualityCheck(player);
+    }, 2000); // 2-second delay for metadata
   }
 
   function onPlayerStateChange(event) {
@@ -101,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
         player.setPlaybackQuality('highres');
         console.log(`Reapplied highres for ${playerId} on play`);
-        enforceQuality(player); // Force quality on playback
+        enforceQuality(player);
       }
     }
   }
