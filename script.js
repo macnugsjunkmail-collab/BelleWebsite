@@ -100,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startQualityCheck(player) {
     const playerId = player.getIframe().id;
+    let attempts = 0;
+    const maxAttempts = 5; // Increased attempts
     const checkQuality = () => {
       const currentQuality = player.getPlaybackQuality();
       const quality = player.getAvailableQualityLevels();
@@ -111,15 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (!isFourKEnabled || !quality.includes('highres')) {
         console.log(`4K not enabled or not available for ${playerId}, using ${currentQuality}`);
       }
-    };
-    const intervalId = setInterval(() => {
-      if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-        checkQuality();
+      if (attempts < maxAttempts && (player.getPlayerState() === YT.PlayerState.PAUSED || player.getPlayerState() === YT.PlayerState.PLAYING)) {
+        attempts++;
+        setTimeout(checkQuality, 1000); // Retry every 1 second
       } else {
-        clearInterval(intervalId);
+        console.log(`Quality check completed for ${playerId} after ${attempts} attempts, final quality: ${currentQuality}`);
       }
-    }, 2000);
-    setTimeout(() => clearInterval(intervalId), 30000); // Stop after 30 seconds
+    };
+    checkQuality(); // Start immediately
   }
 
   function updateQualityDisplay(playerId, quality) {
@@ -204,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
           player.setPlaybackQuality('highres');
           console.log(`Set ${player.getIframe().id} to highres (4K) on play`);
+          startQualityCheck(player); // Restart quality check on play
         }
       } else {
         console.error(`YouTube player for index ${index} not initialized or unavailable`);
@@ -421,31 +423,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const newQuality = isFourKEnabled ? 'highres' : 'auto';
         console.log(`Attempting to set ${player.getIframe().id} to ${newQuality}`);
         player.setPlaybackQuality(newQuality);
-        let attempts = 0;
-        const maxAttempts = 3;
-        const checkQuality = () => {
-          if (attempts >= maxAttempts) {
-            const currentQuality = player.getPlaybackQuality();
-            console.log(`Final quality after toggle: ${currentQuality}`);
-            e.target.classList.toggle('active', isFourKEnabled);
-            updateQualityDisplay(player.getIframe().id, currentQuality);
-            player.isToggleInProgress = false;
-            return;
-          }
-          const currentQuality = player.getPlaybackQuality();
-          console.log(`Quality check attempt ${attempts + 1}: ${currentQuality}`);
-          if (currentQuality !== newQuality) {
-            player.setPlaybackQuality(newQuality);
-            attempts++;
-            setTimeout(checkQuality, 1000); // Retry every 1 second
-          } else {
-            console.log(`Final quality after toggle: ${currentQuality}`);
-            e.target.classList.toggle('active', isFourKEnabled);
-            updateQualityDisplay(player.getIframe().id, currentQuality);
-            player.isToggleInProgress = false;
-          }
-        };
-        setTimeout(checkQuality, 1000); // Initial check after 1 second
+        startQualityCheck(player); // Trigger quality check
+        e.target.classList.toggle('active', isFourKEnabled);
       }
     }
   });
