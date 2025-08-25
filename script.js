@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
       youtubePlayers[3] = new YT.Player('video4', {
         height: '100%',
         width: '100%',
-        videoId: 'a4QlEBFXsxo',
+        videoId: 'dQw4w9WgXcQ', // Test with known 4K video
         playerVars: {
           'controls': 0,
           'rel': 0,
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
         player.setPlaybackQuality('highres');
         console.log(`Reapplied highres for ${playerId} on play`);
-        startQualityCheck(player);
+        enforceQuality(player); // Force quality on playback
       }
     }
   }
@@ -129,6 +129,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
     checkQuality();
+  }
+
+  function enforceQuality(player) {
+    const playerId = player.getIframe().id;
+    if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
+      player.setPlaybackQuality('highres');
+      console.log(`Enforcing highres for ${playerId} on playback`);
+      updateQualityDisplay(playerId, player.getPlaybackQuality());
+      setTimeout(() => {
+        const currentQuality = player.getPlaybackQuality();
+        if (currentQuality !== 'highres') {
+          console.log(`Quality enforcement failed for ${playerId}, still at ${currentQuality}`);
+        } else {
+          console.log(`Quality enforcement successful for ${playerId}, now at highres`);
+        }
+      }, 2000); // Check after 2 seconds
+    }
   }
 
   function updateQualityDisplay(playerId, quality) {
@@ -378,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isFourKEnabled && player.getAvailableQualityLevels().includes('highres')) {
               player.setPlaybackQuality('highres');
               console.log(`Reapplied highres for ${player.getIframe().id} on unpause`);
-              startQualityCheck(player);
+              enforceQuality(player);
             }
           } else {
             player.pauseVideo();
