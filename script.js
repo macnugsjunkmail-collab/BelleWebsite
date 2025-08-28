@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      tag.onerror = () => console.error('Failed to load YouTube IFrame API');
     }
   }
   loadYouTubeAPI();
@@ -18,38 +19,51 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize YouTube IFrame API
   window.onYouTubeIframeAPIReady = function() {
     console.log('YouTube IFrame API ready');
-    youtubePlayers[2] = new YT.Player('video3', {
-      height: '100%',
-      width: '100%',
-      videoId: 'jDu0UOIfBwM',
-      playerVars: {
-        'controls': 0,
-        'rel': 0,
-        'showinfo': 0,
-        'modestbranding': 1,
-        'enablejsapi': 1
-      },
-      events: {
-        'onReady': onPlayerReady,
-        'onStateChange': onPlayerStateChange
+    try {
+      const video3Element = document.getElementById('video3');
+      const video4Element = document.getElementById('video4');
+      if (!video3Element || !video4Element) {
+        console.error('Video container elements not found:', { video3: video3Element, video4: video4Element });
+        return;
       }
-    });
-    youtubePlayers[3] = new YT.Player('video4', {
-      height: '100%',
-      width: '100%',
-      videoId: 'a4QlEBFXsxo',
-      playerVars: {
-        'controls': 0,
-        'rel': 0,
-        'showinfo': 0,
-        'modestbranding': 1,
-        'enablejsapi': 1
-      },
-      events: {
-        'onReady': onPlayerReady,
-        'onStateChange': onPlayerStateChange
-      }
-    });
+      youtubePlayers[2] = new YT.Player('video3', {
+        height: '100%',
+        width: '100%',
+        videoId: 'jDu0UOIfBwM',
+        playerVars: {
+          'controls': 0,
+          'rel': 0,
+          'showinfo': 0,
+          'modestbranding': 1,
+          'enablejsapi': 1
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange,
+          'onError': (event) => console.error(`YouTube player video3 error:`, event.data)
+        }
+      });
+      youtubePlayers[3] = new YT.Player('video4', {
+        height: '100%',
+        width: '100%',
+        videoId: 'M7lc1UVf-VE',
+        playerVars: {
+          'controls': 0,
+          'rel': 0,
+          'showinfo': 0,
+          'modestbranding': 1,
+          'enablejsapi': 1
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange,
+          'onError': (event) => console.error(`YouTube player video4 error:`, event.data)
+        }
+      });
+      console.log('YouTube players initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize YouTube players:', error);
+    }
   };
 
   function onPlayerReady(event) {
@@ -60,45 +74,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const quality = player.getAvailableQualityLevels();
     const currentQuality = player.getPlaybackQuality();
     console.log(`Available qualities for ${playerId}:`, quality);
-    console.log(`Current playback quality for ${playerId}:`, currentQuality);
+    console.log(`Current playback quality for ${playerId} on start:`, currentQuality);
     if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
       player.playVideo();
     }
-    startQualityCheck(player);
   }
 
   function onPlayerStateChange(event) {
     const player = event.target;
     const playerId = player.getIframe().id;
     const currentQuality = player.getPlaybackQuality();
-    console.log(`YouTube player state change for ${playerId}:`, event.data, `Quality: ${currentQuality}`);
-    if (event.data == YT.PlayerState.ENDED) {
+    const state = event.data;
+    console.log(`YouTube player state change for ${playerId}: ${stateToString(state)}, Quality: ${currentQuality}`);
+    if (state === YT.PlayerState.ENDED) {
       player.stopVideo();
       let index = parseInt(playerId.replace('video', '')) - 1;
       console.log(`Parsed index for ${playerId}: ${index}`);
       handleVideoEnd(index);
       document.getElementById(playerId).style.display = 'none';
-    } else if (event.data == YT.PlayerState.PLAYING) {
-      // Removed on-screen update, keeping console log
+    } else if (state === YT.PlayerState.PLAYING) {
       console.log(`Playing ${playerId} at quality: ${currentQuality}`);
     }
   }
 
+  function stateToString(state) {
+    const states = {
+      "-1": "UNSTARTED",
+      "0": "ENDED",
+      "1": "PLAYING",
+      "2": "PAUSED",
+      "3": "BUFFERING",
+      "5": "CUED"
+    };
+    return states[state] || `UNKNOWN (${state})`;
+  }
+
   function startQualityCheck(player) {
     const playerId = player.getIframe().id;
-    const checkQuality = () => {
-      const currentQuality = player.getPlaybackQuality();
-      const quality = player.getAvailableQualityLevels();
-      console.log(`Quality check for ${playerId}: Current: ${currentQuality}, Available:`, quality);
-    };
-    const intervalId = setInterval(() => {
-      if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-        checkQuality();
-      } else {
-        clearInterval(intervalId);
-      }
-    }, 2000);
-    setTimeout(() => clearInterval(intervalId), 30000); // Stop after 30 seconds
+    const currentQuality = player.getPlaybackQuality();
+    const quality = player.getAvailableQualityLevels();
+    console.log(`Quality check for ${playerId}: Current: ${currentQuality}, Available:`, quality);
+    if (quality.length === 0) {
+      console.warn(`No quality levels available for ${playerId}, possible local environment issue`);
+    }
   }
 
   const videos = [
@@ -161,19 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
         player.setPlaybackRate(speed);
         console.log(`Attempting to play YouTube video ${index + 1} at speed ${speed}`);
         player.playVideo();
+        startQualityCheck(player); // Quality check on video start
+        if (pauseRing) {
+          pauseRing.style.display = 'block';
+          pauseRing.style.opacity = '0.3';
+          pauseRing.style.border = '2px solid white';
+          pauseRing.style.background = 'transparent';
+          isVideoPaused = false;
+          if (showcaseButton) showcaseButton.style.display = 'none';
+        }
       } else {
-        console.error(`YouTube player for index ${index} not initialized`);
-      }
-      if (pauseRing && (index === 2 || index === 3)) {
-        pauseRing.style.display = 'block';
-        pauseRing.style.opacity = '0.3';
-        pauseRing.style.border = '2px solid white';
-        pauseRing.style.background = 'transparent';
-        isVideoPaused = false;
-        if (showcaseButton) showcaseButton.style.display = 'none';
-      } else {
-        if (pauseRing) pauseRing.style.display = 'none';
-        if (showcaseButton) showcaseButton.style.display = 'none';
+        console.error(`YouTube player for index ${index} not initialized or invalid`, { player });
       }
     }
 
@@ -310,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (player && typeof player.playVideo === 'function') {
           if (isVideoPaused) {
             player.playVideo();
+            startQualityCheck(player); // Quality check on unpause
             isVideoPaused = false;
             pauseRing.style.opacity = '0.3';
             pauseRing.style.border = '2px solid white';
@@ -319,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`YouTube video ${currentVideoIndex + 1} unpaused`);
           } else {
             player.pauseVideo();
+            startQualityCheck(player); // Quality check on pause
             isVideoPaused = true;
             pauseRing.style.opacity = '1';
             pauseRing.style.border = '2px solid #ff0000';
