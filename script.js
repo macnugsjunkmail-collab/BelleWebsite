@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
           'rel': 0,
           'showinfo': 0,
           'modestbranding': 1,
-          'enablejsapi': 1
+          'enablejsapi': 1,
+          'vq': 'hd1080' // Suggests 1080p quality
         },
         events: {
           'onReady': onPlayerReady,
@@ -52,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
           'rel': 0,
           'showinfo': 0,
           'modestbranding': 1,
-          'enablejsapi': 1
+          'enablejsapi': 1,
+          'vq': 'hd1080' // Suggests 1080p quality
         },
         events: {
           'onReady': onPlayerReady,
@@ -75,6 +77,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentQuality = player.getPlaybackQuality();
     console.log(`Available qualities for ${playerId}:`, quality);
     console.log(`Current playback quality for ${playerId} on start:`, currentQuality);
+    // Attempt to set preferred quality to 1080p
+    const preferredQuality = 'hd1080';
+    if (quality.includes(preferredQuality)) {
+      player.setPlaybackQuality(preferredQuality);
+      console.log(`Set ${playerId} to ${preferredQuality}`);
+    } else {
+      console.log(`Preferred quality ${preferredQuality} not available for ${playerId}, using default`);
+    }
     if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
       player.playVideo();
     }
@@ -175,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const player = youtubePlayers[index];
       if (player && typeof player.playVideo === 'function') {
         document.getElementById(`video${index + 1}`).style.display = 'block';
-        player.setSize('100%', '100%');
+        player.setSize('100%', '100%'); // Ensure full size on mobile
         player.setPlaybackRate(speed);
         console.log(`Attempting to play YouTube video ${index + 1} at speed ${speed}`);
         player.playVideo();
