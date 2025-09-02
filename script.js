@@ -36,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
           'showinfo': 0,
           'modestbranding': 1,
           'enablejsapi': 1,
-          'vq': 'hd1080' // Suggests 1080p quality
+          'vq': 'hd1080', // Suggests 1080p quality
+          'disablekb': 1 // Disable keyboard controls to reduce interference
         },
         events: {
           'onReady': onPlayerReady,
@@ -54,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
           'showinfo': 0,
           'modestbranding': 1,
           'enablejsapi': 1,
-          'vq': 'hd1080' // Suggests 1080p quality
+          'vq': 'hd1080', // Suggests 1080p quality
+          'disablekb': 1 // Disable keyboard controls to reduce interference
         },
         events: {
           'onReady': onPlayerReady,
@@ -80,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
       player.playVideo();
     }
+    // Start quality monitoring
+    monitorQuality(player);
   }
 
   function onPlayerStateChange(event) {
@@ -127,6 +131,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quality.length === 0) {
       console.warn(`No quality levels available for ${playerId}, possible local environment issue`);
     }
+  }
+
+  function monitorQuality(player) {
+    const playerId = player.getIframe().id;
+    const intervalId = setInterval(() => {
+      const currentQuality = player.getPlaybackQuality();
+      const availableQualities = player.getAvailableQualityLevels();
+      if (currentQuality !== 'hd1080' && availableQualities.includes('hd1080')) {
+        player.setPlaybackQuality('hd1080');
+        console.log(`Re-adjusted ${playerId} to hd1080 due to quality drift`);
+      }
+      console.log(`Quality monitor for ${playerId}: Current: ${currentQuality}, Available:`, availableQualities);
+    }, 5000); // Check every 5 seconds
+    player.addEventListener('onStateChange', (event) => {
+      if (event.data === YT.PlayerState.ENDED) {
+        clearInterval(intervalId);
+      }
+    });
   }
 
   const videos = [
