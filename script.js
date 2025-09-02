@@ -35,9 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'rel': 0,
           'showinfo': 0,
           'modestbranding': 1,
-          'enablejsapi': 1,
-          'vq': 'hd1080',
-          'disablekb': 1
+          'enablejsapi': 1
         },
         events: {
           'onReady': onPlayerReady,
@@ -54,9 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'rel': 0,
           'showinfo': 0,
           'modestbranding': 1,
-          'enablejsapi': 1,
-          'vq': 'hd1080',
-          'disablekb': 1
+          'enablejsapi': 1
         },
         events: {
           'onReady': onPlayerReady,
@@ -75,16 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const player = event.target;
     const playerId = player.getIframe().id;
     console.log(`YouTube player ${playerId} ready, currentIndex: ${currentVideoIndex}`);
-    setTimeout(() => {
-      const quality = player.getAvailableQualityLevels();
-      const currentQuality = player.getPlaybackQuality();
-      console.log(`Available qualities for ${playerId} after delay:`, quality);
-      console.log(`Current playback quality for ${playerId} on start:`, currentQuality);
-      if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
-        player.playVideo();
-      }
-      monitorQuality(player);
-    }, 1000); // Delay to ensure quality data is available
+    const quality = player.getAvailableQualityLevels();
+    const currentQuality = player.getPlaybackQuality();
+    console.log(`Available qualities for ${playerId}:`, quality);
+    console.log(`Current playback quality for ${playerId} on start:`, currentQuality);
+    if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
+      player.playVideo();
+    }
   }
 
   function onPlayerStateChange(event) {
@@ -101,14 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById(playerId).style.display = 'none';
     } else if (state === YT.PlayerState.PLAYING) {
       console.log(`Playing ${playerId} at quality: ${currentQuality}`);
-      const preferredQuality = 'hd1080';
-      const availableQualities = player.getAvailableQualityLevels();
-      if (availableQualities.length > 0 && availableQualities.includes(preferredQuality)) {
-        player.setPlaybackQuality(preferredQuality);
-        console.log(`Adjusted ${playerId} to ${preferredQuality} on play`);
-      } else {
-        console.warn(`Cannot set ${preferredQuality} for ${playerId}, available:`, availableQualities);
-      }
     }
   }
 
@@ -132,24 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quality.length === 0) {
       console.warn(`No quality levels available for ${playerId}, possible local environment issue`);
     }
-  }
-
-  function monitorQuality(player) {
-    const playerId = player.getIframe().id;
-    const intervalId = setInterval(() => {
-      const currentQuality = player.getPlaybackQuality();
-      const availableQualities = player.getAvailableQualityLevels();
-      if (currentQuality !== 'hd1080' && availableQualities.includes('hd1080')) {
-        player.setPlaybackQuality('hd1080');
-        console.log(`Re-adjusted ${playerId} to hd1080 due to quality drift`);
-      }
-      console.log(`Quality monitor for ${playerId}: Current: ${currentQuality}, Available:`, availableQualities);
-    }, 5000);
-    player.addEventListener('onStateChange', (event) => {
-      if (event.data === YT.PlayerState.ENDED) {
-        clearInterval(intervalId);
-      }
-    });
   }
 
   const videos = [
@@ -180,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (video) video.style.display = 'none';
     });
 
-    currentVideoIndex = index;
+    currentVideoIndex = index; // Ensure index is updated here
     console.log(`Setting currentVideoIndex to ${index}`);
     if (index === 0 || index === 1) {
       const nextVideo = videos[index];
@@ -193,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (playPromise !== undefined && typeof playPromise.catch === 'function') {
         playPromise.catch(error => console.error('Video playback failed:', error));
       }
-      if (pauseRing && index === 0) {
+      if (pauseRing && (index === 0)) {
         pauseRing.style.display = 'block';
         pauseRing.style.opacity = '0.3';
         pauseRing.style.border = '2px solid white';
@@ -212,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         player.setPlaybackRate(speed);
         console.log(`Attempting to play YouTube video ${index + 1} at speed ${speed}`);
         player.playVideo();
-        startQualityCheck(player);
+        startQualityCheck(player); // Quality check on video start
         if (pauseRing) {
           pauseRing.style.display = 'block';
           pauseRing.style.opacity = '0.3';
@@ -226,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Hide button and pop-ups
     if (nextButton) nextButton.style.display = 'none';
     if (popup) popup.style.display = 'none';
     if (speedPopup) speedPopup.style.display = 'none';
@@ -358,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (player && typeof player.playVideo === 'function') {
           if (isVideoPaused) {
             player.playVideo();
-            startQualityCheck(player);
+            startQualityCheck(player); // Quality check on unpause
             isVideoPaused = false;
             pauseRing.style.opacity = '0.3';
             pauseRing.style.border = '2px solid white';
@@ -368,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`YouTube video ${currentVideoIndex + 1} unpaused`);
           } else {
             player.pauseVideo();
-            startQualityCheck(player);
+            startQualityCheck(player); // Quality check on pause
             isVideoPaused = true;
             pauseRing.style.opacity = '1';
             pauseRing.style.border = '2px solid #ff0000';
