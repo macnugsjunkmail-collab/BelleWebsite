@@ -77,14 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentQuality = player.getPlaybackQuality();
     console.log(`Available qualities for ${playerId}:`, quality);
     console.log(`Current playback quality for ${playerId} on start:`, currentQuality);
-    // Attempt to set preferred quality to 1080p
-    const preferredQuality = 'hd1080';
-    if (quality.includes(preferredQuality)) {
-      player.setPlaybackQuality(preferredQuality);
-      console.log(`Set ${playerId} to ${preferredQuality}`);
-    } else {
-      console.log(`Preferred quality ${preferredQuality} not available for ${playerId}, using default`);
-    }
     if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
       player.playVideo();
     }
@@ -104,6 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById(playerId).style.display = 'none';
     } else if (state === YT.PlayerState.PLAYING) {
       console.log(`Playing ${playerId} at quality: ${currentQuality}`);
+      const preferredQuality = 'hd1080';
+      const availableQualities = player.getAvailableQualityLevels();
+      if (availableQualities.length > 0 && availableQualities.includes(preferredQuality)) {
+        player.setPlaybackQuality(preferredQuality);
+        console.log(`Adjusted ${playerId} to ${preferredQuality} on play`);
+      } else {
+        console.log(`Cannot set ${preferredQuality} for ${playerId}, available:`, availableQualities);
+      }
     }
   }
 
