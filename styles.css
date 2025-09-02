@@ -8,7 +8,7 @@ body {
 .video-container {
   position: relative;
   width: 100vw;
-  height: 100vh; /* Revert to vh for consistent sizing */
+  height: 56.25vw; /* 16:9 aspect ratio for 1080p */
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -17,8 +17,7 @@ body {
 
 #video3, #video4 {
   width: 100%;
-  height: auto; /* Allow proportional scaling */
-  max-height: 100vh; /* Prevent overflow beyond viewport */
+  height: 100%; /* Match container height for 16:9 */
   object-fit: contain; /* Ensure content fits without cropping */
 }
 
@@ -27,8 +26,9 @@ body {
   height: 100%;
   object-fit: contain;
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the video */
 }
 
 .video::-webkit-media-controls {
