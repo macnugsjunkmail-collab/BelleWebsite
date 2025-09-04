@@ -8,21 +8,29 @@ body {
 .video-container {
   position: relative;
   width: 100vw;
-  height: 100vh; /* Revert to vh for consistent sizing */
+  height: 100vh;
   overflow: hidden;
 }
 
 .video {
+  position: relative;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  overflow: hidden;
+}
+
+.video .youtube-player {
   position: absolute;
   top: 0;
   left: 0;
+  width: 1280px; /* Initial HD width */
+  height: 720px; /* Initial HD height */
+  transform-origin: 0 0;
+  transform: scale(1); /* Base scale, will be adjusted by JS */
 }
 
 .video::-webkit-media-controls {
-  display: none !important; /* Hides Chrome's native controls, including Cast */
+  display: none !important;
 }
 
 .button-container {
@@ -119,7 +127,7 @@ body {
   cursor: pointer;
   z-index: 15;
   transition: background-color 0.3s, color 0.3s;
-  display: none; /* Initially hidden */
+  display: none;
 }
 
 #fourKToggle.active {
@@ -215,7 +223,7 @@ body {
 }
 
 .popup-button {
-  padding: 8px 15px; /* Adjusted padding */
+  padding: 8px 15px;
   margin: 0;
   font-size: 16px;
   border: none;
@@ -223,8 +231,7 @@ body {
   border-radius: 5px;
   transition: background-color 0.3s;
   box-sizing: border-box;
-  /* Removed flex: 1 to let buttons size to content */
-  max-width: 190px; /* Limit maximum width */
+  max-width: 190px;
 }
 
 .popup-button.watch- {
@@ -321,7 +328,7 @@ body {
   gap: 20px;
   max-width: 1200px;
   padding: 0 20px 20px 20px;
-  margin: 0 auto; /* Added to center the grid horizontally */
+  margin: 0 auto;
 }
 
 .book-item {
@@ -372,24 +379,24 @@ body {
 
 /* Custom Scrollbar Styling (WebKit browsers) */
 #bookShowcase .scroll-content::-webkit-scrollbar {
-  width: 10px; /* Width of the scrollbar */
+  width: 10px;
 }
 
 #bookShowcase .scroll-content::-webkit-scrollbar-track {
-  background: transparent; /* Remove white box, make track invisible */
+  background: transparent;
 }
 
 #bookShowcase .scroll-content::-webkit-scrollbar-thumb {
-  background-color: #808080; /* Grey scrollbar thumb */
-  border-radius: 5px; /* Slightly rounded edges */
+  background-color: #808080;
+  border-radius: 5px;
 }
 
 #bookShowcase .scroll-content::-webkit-scrollbar-thumb:hover {
-  background-color: #666666; /* Darker grey on hover */
+  background-color: #666666;
 }
 
 /* Firefox Scrollbar Styling (limited support) */
 #bookShowcase .scroll-content {
-  scrollbar-width: thin; /* Slim scrollbar */
-  scrollbar-color: #808080 transparent; /* Grey thumb, transparent track */
+  scrollbar-width: thin;
+  scrollbar-color: #808080 transparent;
 }

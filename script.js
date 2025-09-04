@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       youtubePlayers[2] = new YT.Player('video3', {
-        height: '100%',
-        width: '100%',
+        height: '720', // Initial HD height
+        width: '1280', // Initial HD width
         videoId: 'jDu0UOIfBwM',
         playerVars: {
           'controls': 0,
@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       youtubePlayers[3] = new YT.Player('video4', {
-        height: '100%',
-        width: '100%',
+        height: '720', // Initial HD height
+        width: '1280', // Initial HD width
         videoId: 'M7lc1UVf-VE',
         playerVars: {
           'controls': 0,
@@ -78,6 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
       player.playVideo();
     }
+    // Scale the player to fit the container after initialization
+    const container = document.getElementById(playerId).parentElement;
+    const scaleX = container.offsetWidth / 1280;
+    const scaleY = container.offsetHeight / 720;
+    const scale = Math.min(scaleX, scaleY);
+    player.getIframe().style.transform = `scale(${scale})`;
+    player.getIframe().style.transformOrigin = '0 0';
+    player.getIframe().style.position = 'absolute';
   }
 
   function onPlayerStateChange(event) {
@@ -175,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const player = youtubePlayers[index];
       if (player && typeof player.playVideo === 'function') {
         document.getElementById(`video${index + 1}`).style.display = 'block';
-        player.setSize('100%', '100%');
+        player.setSize('1280', '720'); // Set initial size
         player.setPlaybackRate(speed);
         console.log(`Attempting to play YouTube video ${index + 1} at speed ${speed}`);
         player.playVideo();
