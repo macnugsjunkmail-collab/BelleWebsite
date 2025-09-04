@@ -75,17 +75,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentQuality = player.getPlaybackQuality();
     console.log(`Available qualities for ${playerId}:`, quality);
     console.log(`Current playback quality for ${playerId} on start:`, currentQuality);
-    if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
-      player.playVideo();
-    }
-    // Scale the player to fit the container after initialization
-    const container = document.getElementById(playerId).parentElement;
-    const scaleX = container.offsetWidth / 1280;
-    const scaleY = container.offsetHeight / 720;
-    const scale = Math.min(scaleX, scaleY);
-    player.getIframe().style.transform = `scale(${scale})`;
-    player.getIframe().style.transformOrigin = '0 0';
-    player.getIframe().style.position = 'absolute';
+    // Delay playback to allow metadata loading
+    setTimeout(() => {
+      if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
+        player.playVideo();
+        // Attempt to set HD quality (optional, may not always work)
+        player.setPlaybackQuality('hd720');
+        console.log(`Attempted to set quality to hd720 for ${playerId}`);
+      }
+    }, 500); // 500ms delay
   }
 
   function onPlayerStateChange(event) {
@@ -155,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (video) video.style.display = 'none';
     });
 
-    currentVideoIndex = index; // Ensure index is updated here
+    currentVideoIndex = index;
     console.log(`Setting currentVideoIndex to ${index}`);
     if (index === 0 || index === 1) {
       const nextVideo = videos[index];
@@ -182,12 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (index === 2 || index === 3) {
       const player = youtubePlayers[index];
       if (player && typeof player.playVideo === 'function') {
-        document.getElementById(`video${index + 1}`).style.display = 'block';
-        player.setSize('1280', '720'); // Set initial size
+        const videoContainer = document.getElementById(`video${index + 1}`);
+        videoContainer.style.display = 'block';
+        player.setSize('1280', '720'); // Initial size
         player.setPlaybackRate(speed);
         console.log(`Attempting to play YouTube video ${index + 1} at speed ${speed}`);
         player.playVideo();
-        startQualityCheck(player); // Quality check on video start
+        startQualityCheck(player);
         if (pauseRing) {
           pauseRing.style.display = 'block';
           pauseRing.style.opacity = '0.3';
@@ -334,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (player && typeof player.playVideo === 'function') {
           if (isVideoPaused) {
             player.playVideo();
-            startQualityCheck(player); // Quality check on unpause
+            startQualityCheck(player);
             isVideoPaused = false;
             pauseRing.style.opacity = '0.3';
             pauseRing.style.border = '2px solid white';
@@ -344,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`YouTube video ${currentVideoIndex + 1} unpaused`);
           } else {
             player.pauseVideo();
-            startQualityCheck(player); // Quality check on pause
+            startQualityCheck(player);
             isVideoPaused = true;
             pauseRing.style.opacity = '1';
             pauseRing.style.border = '2px solid #ff0000';

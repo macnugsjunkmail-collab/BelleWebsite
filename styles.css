@@ -19,14 +19,24 @@ body {
   overflow: hidden;
 }
 
-.video .youtube-player {
+.video .youtube-wrapper {
   position: absolute;
   top: 0;
   left: 0;
   width: 1280px; /* Initial HD width */
   height: 720px; /* Initial HD height */
+  overflow: hidden;
+}
+
+.video .youtube-wrapper .youtube-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 720px;
   transform-origin: 0 0;
-  transform: scale(1); /* Base scale, will be adjusted by JS */
+  /* Scale to fit height, width will adjust proportionally */
+  transform: scale(1);
 }
 
 .video::-webkit-media-controls {

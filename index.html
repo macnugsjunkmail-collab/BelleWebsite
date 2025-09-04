@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes"> <!-- Updated from deprecated meta -->
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Belle Website</title>
   <link rel="stylesheet" href="styles.css">
@@ -13,8 +13,12 @@
   <div class="video-container">
     <video id="video1" class="video" src="video1.mp4" muted preload="auto"></video>
     <video id="video2" class="video" src="video2.mp4" style="display: none;" preload="auto"></video>
-    <div id="video3" class="video youtube-player" style="display: none;"></div>
-    <div id="video4" class="video youtube-player" style="display: none;"></div>
+    <div id="video3" class="video youtube-wrapper" style="display: none;">
+      <div class="youtube-player"></div>
+    </div>
+    <div id="video4" class="video youtube-wrapper" style="display: none;">
+      <div class="youtube-player"></div>
+    </div>
   </div>
   <div class="button-container">
     <button id="nextButton" class="next-button" style="display: none;">Next Animation</button>
