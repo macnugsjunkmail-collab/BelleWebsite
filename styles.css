@@ -8,39 +8,27 @@ body {
 .video-container {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  height: 100vh; /* Revert to vh for consistent sizing */
   overflow: hidden;
 }
 
 .video {
-  position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-}
-
-.video .youtube-wrapper {
+  object-fit: contain;
   position: absolute;
   top: 0;
   left: 0;
-  width: 1280px; /* Initial HD width */
-  height: 720px; /* Initial HD height */
-  overflow: hidden;
+  transition: opacity 0.25s ease;   /* Short crossfade */
+  opacity: 1;
 }
 
-.video .youtube-wrapper .youtube-player {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1280px;
-  height: 720px;
-  transform-origin: 0 0;
-  /* Scale to fit height, width will adjust proportionally */
-  transform: scale(1);
+.video.hidden {
+  opacity: 0;
 }
 
 .video::-webkit-media-controls {
-  display: none !important;
+  display: none !important; /* Hides Chrome's native controls, including Cast */
 }
 
 .button-container {
@@ -137,7 +125,7 @@ body {
   cursor: pointer;
   z-index: 15;
   transition: background-color 0.3s, color 0.3s;
-  display: none;
+  display: none; /* Initially hidden */
 }
 
 #fourKToggle.active {
@@ -233,7 +221,7 @@ body {
 }
 
 .popup-button {
-  padding: 8px 15px;
+  padding: 8px 15px; /* Adjusted padding */
   margin: 0;
   font-size: 16px;
   border: none;
@@ -241,7 +229,8 @@ body {
   border-radius: 5px;
   transition: background-color 0.3s;
   box-sizing: border-box;
-  max-width: 190px;
+  /* Removed flex: 1 to let buttons size to content */
+  max-width: 190px; /* Limit maximum width */
 }
 
 .popup-button.watch- {
@@ -295,6 +284,45 @@ body {
   text-decoration: underline;
 }
 
+.title-logo {
+  display: flex;
+  flex-direction: row;        /* side-by-side on wide screens */
+  justify-content: center;
+  align-items: center;
+  gap: 5px;                  /* space between the two words */
+  margin: 0px 0 15px 0;
+  flex-wrap: wrap;            /* allows wrapping on narrow screens */
+}
+
+.title-chasing,
+.title-shelf {
+  height: 90px;               /* adjust this value to your preferred size */
+  width: auto;
+  object-fit: contain;
+}
+
+/* On portrait / mobile — stack them vertically and reduce size a bit */
+@media (max-width: 768px) {
+  .title-logo {
+    flex-direction: column;
+    gap: 10px;
+    margin: 30px 0 20px 0;
+  }
+  
+  .title-chasing,
+  .title-shelf {
+    height: 65px;            /* slightly smaller on phones */
+  }
+}
+
+/* Optional: even smaller on very narrow phones */
+@media (max-width: 480px) {
+  .title-chasing,
+  .title-shelf {
+    height: 55px;
+  }
+}
+
 #bookShowcase {
   position: fixed;
   top: 0;
@@ -329,16 +357,16 @@ body {
 #bookShowcase h2 {
   font-size: 28px;
   color: white;
-  margin: 10px 0 20px;
+  margin: 10px 0 40px;
 }
 
 .book-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  gap: 25px 20px;   /* 25px vertical, 20px horizontal */
   max-width: 1200px;
   padding: 0 20px 20px 20px;
-  margin: 0 auto;
+  margin: 0 auto; /* Added to center the grid horizontally */
 }
 
 .book-item {
@@ -358,55 +386,87 @@ body {
   transform: scale(1.05);
 }
 
-.book-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-  padding: 4px 20px;
-  font-size: 16px;
-  font-family: 'Comic Neue', cursive;
-  font-weight: 700;
-  color: white;
-  background-color: #e5952c;
-  border: none;
-  border-radius: 25px;
-  text-decoration: none;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  height: 30px;
-}
-
-.book-button:hover {
-  background-color: #d57e0d;
-}
-
 .book-title {
   display: none;
 }
 
 /* Custom Scrollbar Styling (WebKit browsers) */
 #bookShowcase .scroll-content::-webkit-scrollbar {
-  width: 10px;
+  width: 10px; /* Width of the scrollbar */
 }
 
 #bookShowcase .scroll-content::-webkit-scrollbar-track {
-  background: transparent;
+  background: transparent; /* Remove white box, make track invisible */
 }
 
 #bookShowcase .scroll-content::-webkit-scrollbar-thumb {
-  background-color: #808080;
-  border-radius: 5px;
+  background-color: #808080; /* Grey scrollbar thumb */
+  border-radius: 5px; /* Slightly rounded edges */
 }
 
 #bookShowcase .scroll-content::-webkit-scrollbar-thumb:hover {
-  background-color: #666666;
+  background-color: #666666; /* Darker grey on hover */
 }
 
 /* Firefox Scrollbar Styling (limited support) */
 #bookShowcase .scroll-content {
-  scrollbar-width: thin;
-  scrollbar-color: #808080 transparent;
+  scrollbar-width: thin; /* Slim scrollbar */
+  scrollbar-color: #808080 transparent; /* Grey thumb, transparent track */
+}
+
+#homeShowcase {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: 130px 10px 10px 10px;
+  box-sizing: border-box;
+  z-index: 30;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#homeShowcase .scroll-content {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+#homeShowcase h2 {
+  font-size: 28px;
+  color: white;
+  margin: 10px 0 40px;
+  font-family: 'Comic Neue', cursive;
+  font-weight: 700;
+}
+
+/* Custom Scrollbar Styling (WebKit browsers) */
+#homeShowcase .scroll-content::-webkit-scrollbar {
+  width: 10px; /* Width of the scrollbar */
+}
+
+#homeShowcase .scroll-content::-webkit-scrollbar-track {
+  background: transparent; /* Remove white box, make track invisible */
+}
+
+#homeShowcase .scroll-content::-webkit-scrollbar-thumb {
+  background-color: #808080; /* Grey scrollbar thumb */
+  border-radius: 5px; /* Slightly rounded edges */
+}
+
+#homeShowcase .scroll-content::-webkit-scrollbar-thumb:hover {
+  background-color: #666666; /* Darker grey on hover */
+}
+
+/* Firefox Scrollbar Styling (limited support) */
+#homeShowcase .scroll-content {
+  scrollbar-width: thin; /* Slim scrollbar */
+  scrollbar-color: #808080 transparent; /* Grey thumb, transparent track */
 }

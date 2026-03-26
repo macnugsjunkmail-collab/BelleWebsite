@@ -8,13 +8,15 @@
   <title>Belle Website</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="youtube-narrated"    content="a4QlEBFXsxo">
+  <meta name="youtube-no-narrator" content="6fJOL_j7dkM">
 </head>
 <body>
   <div class="video-container">
-    <video id="video1" class="video" src="Intro Button.mp4" muted preload="auto"></video>
+    <video id="video1" class="video" src="Intro Extended.mp4" muted preload="auto"></video>
     <video id="video2" class="video" src="Ned Intro.mp4" style="display: none;" preload="auto"></video>
-    <video id="video3" class="video" src="Ned at the Belle Video - Narrator.mp4" style="display: none;" preload="auto"></video>
-    <video id="video4" class="video" src="Ned at the Belle Video - No Narrator.mp4" style="display: none;" preload="auto"></video>
+    <div id="video3" class="video youtube-player" style="display: none;"></div>
+    <div id="video4" class="video youtube-player" style="display: none;"></div>
   </div>
   <div class="button-container">
     <button id="nextButton" class="next-button" style="display: none;">Next Animation</button>
@@ -51,29 +53,26 @@
           <a href="#">
             <img src="image1.png" alt="Ned at the Belle">
           </a>
-          <a href="https://a.co/d/hBaDbZA" target="_blank" class="book-button">Bring Ned Home</a>
         </div>
         <div class="book-item">
           <a href="#">
             <img src="image2.png" alt="Kym at the Belle">
           </a>
-          <a href="https://a.co/d/c4QHKXn" target="_blank" class="book-button">Bring Kym Home</a>
         </div>
         <div class="book-item">
           <a href="#">
             <img src="image3.png" alt="Neville at the Belle">
           </a>
-          <a href="https://a.co/d/5E6WCs0" target="_blank" class="book-button">Bring Neville Home</a>
         </div>
         <div class="book-item">
           <a href="#">
             <img src="image4.png" alt="Anna at the Belle">
           </a>
-          <a href="https://a.co/d/2BpyVux" target="_blank" class="book-button">Bring Anna Home</a>
         </div>
       </div>
     </div>
   </div>
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="script.js"></script>
 </body>
 </html>

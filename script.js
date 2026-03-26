@@ -19,17 +19,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize YouTube IFrame API
   window.onYouTubeIframeAPIReady = function() {
     console.log('YouTube IFrame API ready');
+
+    const narratedId    = document.querySelector('meta[name="youtube-narrated"]')?.content;
+    const noNarratorId  = document.querySelector('meta[name="youtube-no-narrator"]')?.content;
+
+    if (!narratedId || !noNarratorId) {
+      console.error('Missing YouTube video IDs in meta tags');
+      return;
+    }
+
     try {
-      const video3Element = document.getElementById('video3');
-      const video4Element = document.getElementById('video4');
-      if (!video3Element || !video4Element) {
-        console.error('Video container elements not found:', { video3: video3Element, video4: video4Element });
-        return;
-      }
       youtubePlayers[2] = new YT.Player('video3', {
-        height: '720', // Initial HD height
-        width: '1280', // Initial HD width
-        videoId: 'jDu0UOIfBwM',
+        height: '100%',
+        width: '100%',
+        videoId: narratedId,           // ← dynamic per page
         playerVars: {
           'controls': 0,
           'rel': 0,
@@ -44,9 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       youtubePlayers[3] = new YT.Player('video4', {
-        height: '720', // Initial HD height
-        width: '1280', // Initial HD width
-        videoId: 'M7lc1UVf-VE',
+        height: '100%',
+        width: '100%',
+        videoId: noNarratorId,         // ← dynamic per page
         playerVars: {
           'controls': 0,
           'rel': 0,
@@ -60,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'onError': (event) => console.error(`YouTube player video4 error:`, event.data)
         }
       });
-      console.log('YouTube players initialized successfully');
+      console.log('YouTube players initialized with IDs:', narratedId, noNarratorId);
     } catch (error) {
       console.error('Failed to initialize YouTube players:', error);
     }
@@ -75,15 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentQuality = player.getPlaybackQuality();
     console.log(`Available qualities for ${playerId}:`, quality);
     console.log(`Current playback quality for ${playerId} on start:`, currentQuality);
-    // Delay playback to allow metadata loading
-    setTimeout(() => {
-      if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
-        player.playVideo();
-        // Attempt to set HD quality (optional, may not always work)
-        player.setPlaybackQuality('hd720');
-        console.log(`Attempted to set quality to hd720 for ${playerId}`);
-      }
-    }, 500); // 500ms delay
+    if (playerId === `video${currentVideoIndex + 1}` && !isVideoPaused) {
+      player.playVideo();
+    }
   }
 
   function onPlayerStateChange(event) {
@@ -143,50 +140,80 @@ document.addEventListener('DOMContentLoaded', () => {
   const slowSpeedButton = document.getElementById('slowSpeedButton');
   const skipToShowcase = document.getElementById('skipToShowcase');
 
-  function playVideo(index, speed = 1) {
-    const currentVideo = videos[currentVideoIndex];
+  // === ONLY RUN VIDEO LOGIC IF WE ARE ON A CHARACTER STORY PAGE ===
+  if (videos[0]) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const video1 = document.getElementById('video1');
+    
+    if (urlParams.get('intro') === 'extended' && video1) {
+      const desiredSrc = 'Intro Extended.mp4';
+      const currentSrc = video1.getAttribute('src');
+      
+      if (currentSrc !== desiredSrc) {
+        video1.src = desiredSrc;
+        // Preload aggressively before we start playing
+        video1.preload = 'auto';
+        video1.load();
+        console.log('Switched to extended intro video and set preload=auto');
+      }
+    } else {
+      // Ensure normal intro also has good preload
+      if (video1) video1.preload = 'auto';
+    }
+  }
 
+  function playVideo(index, speed = 1) {
     if (!videos[index]) return;
 
-    // Hide all videos
-    videos.forEach((video, i) => {
+    const currentVideo = videos[currentVideoIndex];
+
+    // Hide all videos first
+    videos.forEach((video) => {
       if (video) video.style.display = 'none';
     });
 
     currentVideoIndex = index;
     console.log(`Setting currentVideoIndex to ${index}`);
+
     if (index === 0 || index === 1) {
       const nextVideo = videos[index];
+      if (!nextVideo) return;
+
       nextVideo.style.display = 'block';
       nextVideo.currentTime = 0;
-      nextVideo.playbackRate = 1;
       nextVideo.playbackRate = speed;
-      console.log(`Playing video ${index + 1} at speed ${speed}`);
-      let playPromise = nextVideo.play();
-      if (playPromise !== undefined && typeof playPromise.catch === 'function') {
-        playPromise.catch(error => console.error('Video playback failed:', error));
-      }
-      if (pauseRing && (index === 0)) {
+
+      // Give the browser one frame to render the video before playing
+      // This significantly reduces the initial stagger/black frame
+      requestAnimationFrame(() => {
+        const playPromise = nextVideo.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error(`Video ${index + 1} playback failed:`, error);
+          });
+        }
+      });
+
+      console.log(`Playing local video ${index + 1} at speed ${speed}`);
+
+      if (pauseRing) {
         pauseRing.style.display = 'block';
         pauseRing.style.opacity = '0.3';
         pauseRing.style.border = '2px solid white';
         pauseRing.style.background = 'transparent';
         isVideoPaused = false;
-        if (showcaseButton) showcaseButton.style.display = 'none';
-      } else {
-        if (pauseRing) pauseRing.style.display = 'none';
-        if (showcaseButton) showcaseButton.style.display = 'none';
       }
+      if (showcaseButton) showcaseButton.style.display = 'none';
+
     } else if (index === 2 || index === 3) {
       const player = youtubePlayers[index];
       if (player && typeof player.playVideo === 'function') {
-        const videoContainer = document.getElementById(`video${index + 1}`);
-        videoContainer.style.display = 'block';
-        player.setSize('1280', '720'); // Initial size
+        document.getElementById(`video${index + 1}`).style.display = 'block';
+        player.setSize('100%', '100%');
         player.setPlaybackRate(speed);
         console.log(`Attempting to play YouTube video ${index + 1} at speed ${speed}`);
         player.playVideo();
-        startQualityCheck(player);
+
         if (pauseRing) {
           pauseRing.style.display = 'block';
           pauseRing.style.opacity = '0.3';
@@ -196,17 +223,19 @@ document.addEventListener('DOMContentLoaded', () => {
           if (showcaseButton) showcaseButton.style.display = 'none';
         }
       } else {
-        console.error(`YouTube player for index ${index} not initialized or invalid`, { player });
+        console.error(`YouTube player for index ${index} not initialized`);
       }
     }
 
-    // Hide button and pop-ups
+    // Hide UI elements
     if (nextButton) nextButton.style.display = 'none';
     if (popup) popup.style.display = 'none';
     if (speedPopup) speedPopup.style.display = 'none';
     if (bookShowcase) bookShowcase.style.display = 'none';
 
-    if (currentVideo && currentVideo !== videos[index]) currentVideo.pause();
+    if (currentVideo && currentVideo !== videos[index]) {
+      currentVideo.pause();
+    }
   }
 
   function showBookShowcase() {
@@ -299,7 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
             pauseRing.style.border = '2px solid white';
             pauseRing.style.background = 'transparent';
             if (showcaseButton) showcaseButton.style.display = 'none';
+      
+            // Hide fullscreen button when resuming (same for both videos)
+            const fullscreenButton = document.getElementById('fullscreenButton');
             if (fullscreenButton) fullscreenButton.style.display = 'none';
+      
             console.log(`Video ${currentVideoIndex + 1} unpaused`);
           } else {
             currentVideo.pause();
@@ -307,24 +340,24 @@ document.addEventListener('DOMContentLoaded', () => {
             pauseRing.style.opacity = '1';
             pauseRing.style.border = '2px solid #ff0000';
             pauseRing.style.background = 'transparent';
-            if (currentVideoIndex === 0) {
-              let fullscreenButton = document.getElementById('fullscreenButton');
-              if (!fullscreenButton) {
-                fullscreenButton = document.createElement('button');
-                fullscreenButton.id = 'fullscreenButton';
-                fullscreenButton.className = 'showcase-button';
-                fullscreenButton.textContent = 'Fullscreen';
-                fullscreenButton.style.position = 'absolute';
-                fullscreenButton.style.bottom = '20px';
-                fullscreenButton.style.left = '50%';
-                fullscreenButton.style.transform = 'translateX(-50%)';
-                document.querySelector('.button-container').appendChild(fullscreenButton);
-              }
-              fullscreenButton.style.display = 'block';
-              if (showcaseButton) showcaseButton.style.display = 'none';
-            } else if (currentVideoIndex === 1) {
-              if (showcaseButton) showcaseButton.style.display = 'none';
+      
+            // Show (or create) fullscreen button for BOTH Video1 and Video2
+            let fullscreenButton = document.getElementById('fullscreenButton');
+            if (!fullscreenButton) {
+              fullscreenButton = document.createElement('button');
+              fullscreenButton.id = 'fullscreenButton';
+              fullscreenButton.className = 'showcase-button';
+              fullscreenButton.textContent = 'Fullscreen';
+              fullscreenButton.style.position = 'absolute';
+              fullscreenButton.style.bottom = '20px';
+              fullscreenButton.style.left = '50%';
+              fullscreenButton.style.transform = 'translateX(-50%)';
+              document.querySelector('.button-container').appendChild(fullscreenButton);
             }
+            fullscreenButton.style.display = 'block';
+      
+            if (showcaseButton) showcaseButton.style.display = 'none';
+      
             console.log(`Video ${currentVideoIndex + 1} paused`);
           }
         }
@@ -333,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (player && typeof player.playVideo === 'function') {
           if (isVideoPaused) {
             player.playVideo();
-            startQualityCheck(player);
+            startQualityCheck(player); // Quality check on unpause
             isVideoPaused = false;
             pauseRing.style.opacity = '0.3';
             pauseRing.style.border = '2px solid white';
@@ -343,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`YouTube video ${currentVideoIndex + 1} unpaused`);
           } else {
             player.pauseVideo();
-            startQualityCheck(player);
+            startQualityCheck(player); // Quality check on pause
             isVideoPaused = true;
             pauseRing.style.opacity = '1';
             pauseRing.style.border = '2px solid #ff0000';
@@ -365,27 +398,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const body = document.querySelector('body');
       const fullscreenButton = document.getElementById('fullscreenButton');
       const currentVideo = videos[currentVideoIndex];
+  
+      const enterFullscreen = () => {
+        if (fullscreenButton) fullscreenButton.style.display = 'none';
+        if (currentVideo && currentVideo.paused) {
+          currentVideo.play().catch(error => console.error('Unpause failed:', error));
+          isVideoPaused = false;
+          if (pauseRing) pauseRing.style.display = 'none';  // optional: hide ring in fullscreen
+          console.log(`Video ${currentVideoIndex + 1} unpaused via Fullscreen button`);
+        }
+      };
+  
       if (body.requestFullscreen) {
-        body.requestFullscreen().then(() => {
-          if (fullscreenButton) fullscreenButton.style.display = 'none';
-          if (currentVideoIndex === 0 && currentVideo && currentVideo.paused) {
-            currentVideo.play().catch(error => console.error('Unpause failed:', error));
-            isVideoPaused = false;
-            if (pauseRing) pauseRing.style.display = 'none';
-            console.log('Video1 unpaused via Fullscreen button');
-          }
-        }).catch(err => {
+        body.requestFullscreen().then(enterFullscreen).catch(err => {
           console.log('Fullscreen request failed:', err);
         });
       } else if (body.webkitRequestFullscreen) {
         body.webkitRequestFullscreen();
-        if (fullscreenButton) fullscreenButton.style.display = 'none';
-        if (currentVideoIndex === 0 && currentVideo && currentVideo.paused) {
-          currentVideo.play().catch(error => console.error('Unpause failed:', error));
-          isVideoPaused = false;
-          if (pauseRing) pauseRing.style.display = 'none';
-          console.log('Video1 unpaused via Fullscreen button');
-        }
+        enterFullscreen();
       }
     }
   });
@@ -462,9 +492,14 @@ document.addEventListener('DOMContentLoaded', () => {
           'Ned': 'Ned index.html',
           'Kym': 'Kym index.html',
           'Neville': 'Neville index.html',
-          'Anna': 'Anna index.html'
+          'Anna': 'Anna index.html' 
         };
-        window.location.href = characterFolders[character];
+
+        let targetUrl = characterFolders[character];
+        if (!videos[0]) {  // Coming from Home Showcase
+          targetUrl += (targetUrl.includes('?') ? '&' : '?') + 'intro=extended';
+        }
+        window.location.href = targetUrl;
       });
 
       bringButton.addEventListener('click', () => {
